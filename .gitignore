@@ -1,0 +1,9 @@
+#Bulid output 
+dist/
+
+# Environment Variables
+.evn 
+.env.development.local
+
+# Dependencies
+node_modules/

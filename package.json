@@ -1,0 +1,32 @@
+{
+  "name": "expense-tracker-api",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/karraraljawasim/expense-tracker-api#readme",
+  "bugs": {
+    "url": "https://github.com/karraraljawasim/expense-tracker-api/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/karraraljawasim/expense-tracker-api.git"
+  },
+  "license": "MIT",
+  "author": "",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "bulid": "tsc",
+    "start": "node dist/server.js"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.8.0",
+    "tsx": "^4.22.0",
+    "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  }
+}
