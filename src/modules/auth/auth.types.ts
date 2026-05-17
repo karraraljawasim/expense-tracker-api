@@ -1,5 +1,5 @@
 export type JwtPayload = {
-  sub: { id: string; role: "admin" | "uesr" };
+  sub: { id: string; role: "admin" | "user" };
   type: "refresh" | "access";
 };
 

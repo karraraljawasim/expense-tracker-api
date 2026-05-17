@@ -11,8 +11,8 @@ export const envSchema = z.object({
   DB_URL: z.string(),
   JWT_REFRESH_SECRET: z.string().min(20),
   JWT_ACCESS_SECRET: z.string().min(20),
-  JWT_REFRESH_EXPIRE: "7d",
-  JWT_ACCESS_EXPIRE: "15m",
+  JWT_REFRESH_EXPIRE: z.string().default("7d"),
+  JWT_ACCESS_EXPIRE: z.string().default("15m"),
 });
 
 const parse = envSchema.safeParse(process.env);
