@@ -8,4 +8,10 @@ export const registerSchema = z.object({
   role: z.enum(["admin", "user"]).default("user"),
 });
 
+export const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8, "Too short password"),
+});
+
 export type RegisterUserRequestDto = z.infer<typeof registerSchema>;
+export type LoginUserRequestDto = z.infer<typeof loginSchema>;

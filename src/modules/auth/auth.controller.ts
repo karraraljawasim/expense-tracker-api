@@ -22,4 +22,16 @@ export class AuthController {
       }),
     });
   });
+
+  login = asyncHandler(async (req, res) => {
+    const tokens = await this.authService.login(req.body);
+    setRefreshCookie(res, tokens.refreshToken);
+
+    ApiResponse.success(res, {
+      accessToken: tokens.accessToken,
+      ...(env.NODE_ENV !== "production" && {
+        refreshToken: tokens.refreshToken,
+      }),
+    });
+  });
 }
