@@ -11,4 +11,11 @@ export class ApiResponse {
   static create<T>(res: Response, data: T) {
     return this.success(res, data, 201);
   }
+
+  static noContent(res: Response, statusCode = 204) {
+    return res.status(statusCode).json({
+      success: true,
+      message: "Action don successfully",
+    });
+  }
 }

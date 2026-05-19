@@ -1,7 +1,12 @@
 import { env } from "../../config/env.js";
 import { ApiResponse } from "../../utils/apiResponse.js";
+import { UnauthorizedError } from "../../utils/AppError.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
-import { setRefreshCookie } from "./auth.cookie.js";
+import {
+  clearRefreshCookie,
+  getRefreshCookie,
+  setRefreshCookie,
+} from "./auth.cookie.js";
 import { IAuthService } from "./auth.service.js";
 
 export class AuthController {
@@ -33,5 +38,35 @@ export class AuthController {
         refreshToken: tokens.refreshToken,
       }),
     });
+  });
+
+  logout = asyncHandler(async (req, res) => {
+    const refreshToken = getRefreshCookie(req);
+    if (!refreshToken) {
+      throw new UnauthorizedError("No refresh token");
+    }
+
+    await this.authService.logout(refreshToken);
+    clearRefreshCookie(res);
+
+    ApiResponse.noContent(res);
+  });
+
+  logoutAll = asyncHandler(async (req, res) => {
+    await this.authService.logoutAll(req.user!.id);
+    clearRefreshCookie(res);
+
+    ApiResponse.noContent(res);
+  });
+
+  refresh = asyncHandler(async (req, res) => {
+    const refreshToken = getRefreshCookie(req);
+    if (!refreshToken) {
+      throw new UnauthorizedError("No refersh token");
+    }
+
+    const data = await this.authService.refresh(refreshToken);
+
+    ApiResponse.success(res, data);
   });
 }

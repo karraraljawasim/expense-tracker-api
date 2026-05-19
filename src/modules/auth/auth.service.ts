@@ -13,6 +13,9 @@ const EXPIRES_REFRESH_TOKEN = 1000 * 60 * 60 * 24 * 7;
 export interface IAuthService {
   register: (input: RegisterUserRequestDto) => Promise<TokenPair>;
   login: (input: LoginUserRequestDto) => Promise<TokenPair>;
+  logout: (refreshToken: string) => Promise<void>;
+  logoutAll: (usrId: string) => Promise<void>;
+  refresh: (refreshToken: string) => Promise<Pick<TokenPair, "accessToken">>;
 }
 
 export class AuthService implements IAuthService {
@@ -66,5 +69,41 @@ export class AuthService implements IAuthService {
     });
 
     return tokens;
+  }
+
+  async logout(refreshToken: string) {
+    await RefreshToken.deleteOne({ token: refreshToken });
+  }
+
+  async logoutAll(userId: string) {
+    await RefreshToken.deleteMany({ userId: userId });
+  }
+
+  async refresh(refreshToken: string) {
+    let payload;
+    try {
+      payload = jwtUtils.verifyRefreshToken(refreshToken);
+    } catch (error) {
+      throw new UnauthorizedError("Invalid or expired refersh token");
+    }
+
+    const storedToken = await RefreshToken.findOne({
+      token: refreshToken,
+      expiresAt: { $gt: new Date() },
+    });
+
+    if (!storedToken) {
+      throw new UnauthorizedError("Refresh token revoked");
+    }
+
+    if (!storedToken.userId.equals(payload.sub.id)) {
+      await RefreshToken.deleteOne({ token: storedToken.token });
+      throw new UnauthorizedError("Mismatch refersh token");
+    }
+    const accessToken = jwtUtils.signAccessToken(payload);
+
+    return {
+      accessToken,
+    };
   }
 }

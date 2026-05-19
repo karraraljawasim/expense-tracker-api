@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { env } from "../../config/env.js";
 
-const REFRESH_COOKIE_PATH = "/api/v1/auth/refresh";
+const REFRESH_COOKIE_PATH = "/";
 const REFRESH_COOKIE_NAME = "refreshToken";
 const REFRESH_COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 const REFRESH_COOKIE_OPTIONS = {

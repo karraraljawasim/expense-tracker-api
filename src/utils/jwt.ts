@@ -5,9 +5,14 @@ import { AppError } from "./AppError.js";
 
 export const jwtUtils = {
   signAccessToken(payload: Omit<JwtPayload, "type">): string {
-    return jwt.sign({ ...payload, type: "access" }, env.JWT_ACCESS_SECRET, {
-      expiresIn: env.JWT_ACCESS_EXPIRE as any,
-    });
+    const { exp, iat, ...cleanPayload } = payload as any;
+    return jwt.sign(
+      { ...cleanPayload, type: "access" },
+      env.JWT_ACCESS_SECRET,
+      {
+        expiresIn: env.JWT_ACCESS_EXPIRE as any,
+      },
+    );
   },
 
   signRefreshToken(payload: Omit<JwtPayload, "type">): string {
