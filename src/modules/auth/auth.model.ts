@@ -10,6 +10,7 @@ const refreshTokenSchema = new Schema(
     token: {
       type: String,
       required: true,
+      unique: true,
     },
     expiresAt: {
       type: Date,
@@ -18,6 +19,9 @@ const refreshTokenSchema = new Schema(
   },
   { timestamps: true },
 );
+
+// Indexes
+refreshTokenSchema.index({ userId: 1 });
 
 const RefreshToken = model("RefreshToken", refreshTokenSchema);
 

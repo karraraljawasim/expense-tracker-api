@@ -4,14 +4,15 @@ const userShema = new Schema(
   {
     name: {
       type: String,
-      min: [2, "Too short name"],
-      max: 100,
+      trim: true,
       required: true,
     },
     email: {
       type: String,
       required: true,
       unique: true,
+      lowercase: true,
+      trim: true,
     },
     passwordHash: {
       type: String,
@@ -20,8 +21,9 @@ const userShema = new Schema(
     },
     currency: {
       type: String,
+      uppercase: true,
       default: "USD",
-      enum: ["USD", "IQD"],
+      trim: true,
     },
     role: {
       type: String,
@@ -32,6 +34,6 @@ const userShema = new Schema(
   { timestamps: true },
 );
 
-const User = model("User", userShema);
+const Users = model("Users", userShema);
 
-export default User;
+export default Users;

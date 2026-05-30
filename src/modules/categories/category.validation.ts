@@ -6,9 +6,12 @@ export const createCategorySchema = z.object({
     .string()
     .min(2, "Too short category name")
     .max(255, "Too long category name"),
-  color: z.string(),
-  budgetLimit: z.number().min(0, "Budget limit must be a positive number"),
-  currency: z.enum(["USD", "IQD"]).optional(),
+  color: z.string().optional(),
+  budgetLimit: z
+    .number()
+    .min(0, "Budget limit must be a positive number")
+    .optional(),
+  currency: z.string().optional(),
 });
 
 export const updateCategorySchema = z.object({
@@ -22,7 +25,7 @@ export const updateCategorySchema = z.object({
     .number()
     .min(0, "Budget limit must be a positive number")
     .optional(),
-  currency: z.enum(["USD", "IQD"]).optional(),
+  currency: z.string().optional(),
 });
 
 export const categoryIdParamsSchema = z.object({

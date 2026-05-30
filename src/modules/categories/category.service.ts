@@ -4,7 +4,7 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "../../utils/AppError.js";
-import User from "../users/user.model.js";
+import Users from "../users/user.model.js";
 import Categories from "./category.model.js";
 import { Category } from "./category.types.js";
 import {
@@ -36,7 +36,7 @@ export class CategoryService implements ICategoryService {
     }
 
     if (!input.currency && input.userId) {
-      const user = await User.findById(input.userId);
+      const user = await Users.findById(input.userId);
       if (user && user.currency) {
         input.currency = user.currency;
       }
