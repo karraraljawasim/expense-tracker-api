@@ -1,6 +1,7 @@
 import mongoose, { Schema, model } from "mongoose";
+import { Category } from "./category.types.js";
 
-const categorySchema = new Schema(
+const categorySchema = new Schema<Category>(
   {
     userId: {
       type: mongoose.Schema.ObjectId,
@@ -36,6 +37,6 @@ const categorySchema = new Schema(
 categorySchema.index({ userId: 1 });
 categorySchema.index({ userId: 1, name: 1 }, { unique: true });
 
-const Categories = model("Categories", categorySchema);
+const Categories = model<Category>("Categories", categorySchema);
 
 export default Categories;

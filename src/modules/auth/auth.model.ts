@@ -1,6 +1,7 @@
 import mongoose, { Schema, model } from "mongoose";
+import { IRefreshToken } from "./auth.types.js";
 
-const refreshTokenSchema = new Schema(
+const refreshTokenSchema = new Schema<IRefreshToken>(
   {
     userId: {
       type: mongoose.Schema.ObjectId,
@@ -23,6 +24,6 @@ const refreshTokenSchema = new Schema(
 // Indexes
 refreshTokenSchema.index({ userId: 1 });
 
-const RefreshToken = model("RefreshToken", refreshTokenSchema);
+const RefreshToken = model<IRefreshToken>("RefreshToken", refreshTokenSchema);
 
 export default RefreshToken;

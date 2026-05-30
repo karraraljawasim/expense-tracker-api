@@ -6,6 +6,7 @@ export type Category = {
   name: string;
   color?: string;
   currency: string;
+  budgetLimit?: number;
   createAt?: Date;
   updateAt?: Date;
 };
