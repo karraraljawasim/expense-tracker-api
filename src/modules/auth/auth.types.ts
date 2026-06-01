@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 export type JwtPayload = {
   sub: { id: string; role: "admin" | "user" };
   type: "refresh" | "access";
@@ -6,4 +7,12 @@ export type JwtPayload = {
 export type TokenPair = {
   refreshToken: string;
   accessToken: string;
+};
+
+export type IRefreshToken = {
+  userId: Types.ObjectId;
+  token: string;
+  expiresAt: Date;
+  createdAt: Date;
+  updatedAt?: Date;
 };

@@ -4,7 +4,7 @@ import {
   LoginUserRequestDto,
   RegisterUserRequestDto,
 } from "./auth.validation.js";
-import User from "../users/user.model.js";
+import Users from "../users/user.model.js";
 import { ConflictError, UnauthorizedError } from "../../utils/AppError.js";
 import { jwtUtils } from "../../utils/jwt.js";
 import { TokenPair } from "./auth.types.js";
@@ -20,13 +20,13 @@ export interface IAuthService {
 
 export class AuthService implements IAuthService {
   async register(input: RegisterUserRequestDto) {
-    const userExist = await User.findOne({ email: input.email });
+    const userExist = await Users.findOne({ email: input.email });
     if (userExist) {
       throw new ConflictError("User");
     }
 
     const passwordHash = await bcrypt.hash(input.password, 10);
-    const newUser = await User.create({
+    const newUser = await Users.create({
       ...input,
       passwordHash: passwordHash,
     });
@@ -48,7 +48,7 @@ export class AuthService implements IAuthService {
   }
 
   async login(input: LoginUserRequestDto) {
-    const user = await User.findOne({ email: input.email });
+    const user = await Users.findOne({ email: input.email });
     if (!user) {
       throw new UnauthorizedError("Invalid email or password");
     }

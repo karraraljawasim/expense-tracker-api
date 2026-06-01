@@ -1,17 +1,19 @@
 import { Schema, model } from "mongoose";
+import { IUser } from "./user.types.js";
 
-const userShema = new Schema(
+const userShema = new Schema<IUser>(
   {
     name: {
       type: String,
-      min: [2, "Too short name"],
-      max: 100,
+      trim: true,
       required: true,
     },
     email: {
       type: String,
       required: true,
       unique: true,
+      lowercase: true,
+      trim: true,
     },
     passwordHash: {
       type: String,
@@ -20,8 +22,9 @@ const userShema = new Schema(
     },
     currency: {
       type: String,
+      uppercase: true,
       default: "USD",
-      enum: ["USD", "IQD"],
+      trim: true,
     },
     role: {
       type: String,
@@ -32,6 +35,6 @@ const userShema = new Schema(
   { timestamps: true },
 );
 
-const User = model("User", userShema);
+const Users = model<IUser>("Users", userShema);
 
-export default User;
+export default Users;

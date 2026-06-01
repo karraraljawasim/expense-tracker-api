@@ -1,6 +1,7 @@
 import mongoose, { Schema, model } from "mongoose";
+import { Category } from "./category.types.js";
 
-const categorySchema = new Schema(
+const categorySchema = new Schema<Category>(
   {
     userId: {
       type: mongoose.Schema.ObjectId,
@@ -14,22 +15,28 @@ const categorySchema = new Schema(
     },
     color: {
       type: String,
-      required: true,
+      default: "#6B7280",
+      match: /^#[0-9A-Fa-f]{6}$/,
     },
     budgetLimit: {
       type: Number,
-      required: true,
+      default: 0,
       min: [0, "Budget limit must be a positive number"],
     },
     currency: {
       type: String,
       required: true,
-      enum: ["USD", "IQD"],
+      uppercase: true,
+      trim: true,
     },
   },
   { timestamps: true },
 );
 
-const Categories = model("Categories", categorySchema);
+//Indexes
+categorySchema.index({ userId: 1 });
+categorySchema.index({ userId: 1, name: 1 }, { unique: true });
+
+const Categories = model<Category>("Categories", categorySchema);
 
 export default Categories;
