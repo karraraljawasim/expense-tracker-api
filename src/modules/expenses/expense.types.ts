@@ -28,10 +28,36 @@ export type IExpense = {
 
 export type IGetAllExpensesFilter = {
   categoryId?: string;
-  date?: { $gte?: Date; $lte?: Date };
+  date?: { $gte?: Date; $lt?: Date };
   amount?: { $gte?: number; $lte?: number };
   currency?: string;
   isRecurring?: boolean;
   userId: string;
   "recurrence.parentId"?: null;
 };
+
+export type SubExpense = {
+  _id: Types.ObjectId;
+  recurrence: IRecurrence | null;
+  date: Date;
+  amountInBaseCurrency: number;
+  exchangeRateUsed: number;
+};
+
+export type GetExpenseByIdResponseDto =
+  | {
+      _id: Types.ObjectId;
+      note: string | null;
+      amount: number;
+      currency: string;
+      isRecurring: boolean | null;
+      attachmentUrl: string | null;
+      createdAt: Date;
+      updatedAt: Date;
+      history: {
+        totalCount: number;
+        totalSpent: number;
+        recentCopies: SubExpense[];
+      };
+    }
+  | IExpense;

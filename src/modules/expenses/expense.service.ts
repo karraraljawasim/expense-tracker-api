@@ -7,7 +7,11 @@ import {
 import { BudgetAlert } from "../BudgetAlert/budgetAlert.modle.js";
 import Categories from "../categories/category.model.js";
 import { Expense } from "./expense.modle.js";
-import { IExpense, IGetAllExpensesFilter } from "./expense.types.js";
+import {
+  GetExpenseByIdResponseDto,
+  IExpense,
+  IGetAllExpensesFilter,
+} from "./expense.types.js";
 import {
   CreateExpenseRequestDto,
   GetAllExpensesQueryDto,
@@ -19,6 +23,10 @@ export interface IExpenseService {
     query: GetAllExpensesQueryDto,
     userId: string,
   ) => Promise<IExpense[]>;
+  getById: (
+    expenseId: string,
+    userId: string,
+  ) => Promise<GetExpenseByIdResponseDto>;
 }
 
 export class ExpenseService implements IExpenseService {
@@ -179,10 +187,53 @@ export class ExpenseService implements IExpenseService {
 
     filterObject.date = {};
     filterObject.date.$gte = new Date(query.from);
-    filterObject.date.$lte = new Date(query.to);
+    filterObject.date.$lt = new Date(query.to);
 
     const expensess = await Expense.find(filterObject);
 
     return expensess;
+  }
+
+  async getById(expenseId: string, userId: string) {
+    const expense = await Expense.findById(expenseId);
+    if (!expense) {
+      throw new NotFoundError("Expense");
+    }
+
+    if (expense.userId.toString() !== userId) {
+      throw new NotFoundError("Expense");
+    }
+
+    if (expense.isRecurring && expense.recurrence?.parentId === null) {
+      const subExpenses = await Expense.find({
+        userId: new mongoose.Types.ObjectId(userId),
+        "recurrence.parentId": expense._id,
+      })
+        .select({
+          _id: 1,
+          date: 1,
+          amount: 1,
+          "recurrence.nextRunAt": 1,
+        })
+        .limit(6);
+
+      return {
+        _id: expense._id,
+        note: expense.note,
+        amount: expense.amount,
+        currency: expense.currency,
+        isRecurring: true,
+        attachmentUrl: expense.attachmentUrl,
+        createdAt: expense.createdAt,
+        updatedAt: expense.updatedAt,
+        history: {
+          totalCount: subExpenses.length,
+          totalSpent: subExpenses.reduce((sum, value) => sum + value.amount, 0),
+          recentCopies: subExpenses,
+        },
+      };
+    }
+
+    return expense;
   }
 }

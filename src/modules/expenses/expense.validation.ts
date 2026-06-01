@@ -66,5 +66,11 @@ export const getAllExpensesQuerySchema = z.object({
   maxAmount: z.coerce.number().optional(),
 });
 
+export const expenseIdPramseSchema = z.object({
+  expenseId: z.string().refine((vlaue) => Types.ObjectId.isValid(vlaue), {
+    message: "Invalid object id",
+  }),
+});
+
 export type CreateExpenseRequestDto = z.infer<typeof createExpenseSchema>;
 export type GetAllExpensesQueryDto = z.infer<typeof getAllExpensesQuerySchema>;

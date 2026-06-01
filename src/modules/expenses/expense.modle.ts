@@ -98,10 +98,5 @@ const expenseSchema = new Schema<IExpense>(
 expenseSchema.index({ userId: 1 });
 expenseSchema.index({ userId: 1, date: -1 });
 expenseSchema.index({ userId: 1, categoryId: 1 });
-expenseSchema.index({
-  isRecurring: 1,
-  "recurrence.nextRunAt": 1,
-  isDeleted: 1,
-});
 
 export const Expense = model<IExpense>("Expense", expenseSchema);

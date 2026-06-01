@@ -25,4 +25,13 @@ export class ExpenseController {
 
     ApiResponse.success(res, data);
   });
+
+  getById = asyncHandler(async (req, res) => {
+    const data = await this.#expenseService.getById(
+      req.params.expenseId as string,
+      req.user!.id,
+    );
+
+    ApiResponse.success(res, data);
+  });
 }
