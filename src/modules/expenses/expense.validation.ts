@@ -72,5 +72,19 @@ export const expenseIdPramseSchema = z.object({
   }),
 });
 
+export const updateExpenseSchema = z.object({
+  amount: z.number().optional(),
+  currency: z.string().max(3).optional(),
+  categoryId: z
+    .string()
+    .refine((value) => Types.ObjectId.isValid(value))
+    .optional(),
+  note: z.string().optional(),
+  date: z.string().optional(),
+  attachmentUrl: z.string().optional(),
+  editScope: z.enum(["all", "thisAndFuture", "this"]).optional(),
+});
+
 export type CreateExpenseRequestDto = z.infer<typeof createExpenseSchema>;
 export type GetAllExpensesQueryDto = z.infer<typeof getAllExpensesQuerySchema>;
+export type UpdateExpenseRequestDto = z.infer<typeof updateExpenseSchema>;

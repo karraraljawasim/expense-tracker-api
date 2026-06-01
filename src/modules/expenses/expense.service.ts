@@ -4,7 +4,7 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "../../utils/AppError.js";
-import { BudgetAlert } from "../BudgetAlert/budgetAlert.modle.js";
+import { BudgetAlert } from "../budgetAlert/budgetAlert.modle.js";
 import Categories from "../categories/category.model.js";
 import { Expense } from "./expense.modle.js";
 import {
@@ -15,8 +15,10 @@ import {
 import {
   CreateExpenseRequestDto,
   GetAllExpensesQueryDto,
+  UpdateExpenseRequestDto,
 } from "./expense.validation.js";
 
+let exchangeRate = 1;
 export interface IExpenseService {
   create: (input: CreateExpenseRequestDto, userId: string) => Promise<IExpense>;
   getAll: (
@@ -27,6 +29,11 @@ export interface IExpenseService {
     expenseId: string,
     userId: string,
   ) => Promise<GetExpenseByIdResponseDto>;
+  update: (
+    expenseId: string,
+    input: UpdateExpenseRequestDto,
+    userId: string,
+  ) => Promise<IExpense>;
 }
 
 export class ExpenseService implements IExpenseService {
@@ -39,8 +46,10 @@ export class ExpenseService implements IExpenseService {
       throw new UnauthorizedError("You not the owner to this category");
     }
 
-    let exchangeRate = 1;
-    const amountInBaseCurrency = input.amount * exchangeRate;
+    const amountInBaseCurrency = this.#computeAmountInBaseCurrency(
+      exchangeRate,
+      input.amount,
+    );
 
     let newExpense;
 
@@ -94,55 +103,7 @@ export class ExpenseService implements IExpenseService {
       });
     }
 
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-
-    const result = await Expense.aggregate([
-      {
-        $match: {
-          userId: new mongoose.Types.ObjectId(userId),
-          categoryId: new mongoose.Types.ObjectId(input.categoryId),
-          date: { $gte: startOfMonth, $lt: startOfNextMonth },
-        },
-      },
-      {
-        $group: {
-          _id: null,
-          totalSpent: { $sum: "$amountInBaseCurrency" },
-        },
-      },
-    ]);
-
-    const totalSpent = result.length > 0 ? result[0].totalSpent : 0;
-    const budgetLimit = category.budgetLimit || 0;
-
-    if (budgetLimit > 0) {
-      const percentage = (totalSpent / budgetLimit) * 100;
-
-      if (percentage >= 80) {
-        const alertType = percentage >= 100 ? "exceeded" : "warning";
-
-        const budgetAlertExist = await BudgetAlert.exists({
-          userId: userId,
-          categoryId: input.categoryId,
-          alertType: alertType,
-          createdAt: { $gte: startOfMonth, $lt: startOfNextMonth },
-        });
-
-        if (!budgetAlertExist) {
-          await BudgetAlert.create({
-            userId: userId,
-            categoryId: input.categoryId,
-            month: startOfMonth.toISOString().slice(0, 7),
-            budgetLimit: budgetLimit,
-            spentAmount: totalSpent,
-            percentage: percentage,
-            alertType: alertType,
-          });
-        }
-      }
-    }
+    await this.#checkBudgetAlert(userId, input.categoryId);
 
     return newExpense;
   }
@@ -235,5 +196,198 @@ export class ExpenseService implements IExpenseService {
     }
 
     return expense;
+  }
+
+  async update(
+    expenseId: string,
+    input: UpdateExpenseRequestDto,
+    userId: string,
+  ) {
+    const expense = await Expense.findById(expenseId);
+    let updatedExpense;
+    if (!expense || expense?.userId.toString() !== userId) {
+      throw new NotFoundError("Expense");
+    }
+
+    if (!input.editScope && expense.isRecurring) {
+      throw new AppError("Edit Scope required in Recurring expense", 400);
+    }
+
+    if (
+      expense.isRecurring === false &&
+      expense.recurrence?.parentId === null &&
+      input.editScope === undefined
+    ) {
+      let amountInBaseCurrency;
+      if (
+        (input.amount !== expense.amount && input.amount) ||
+        (expense.currency !== input.currency && input.currency)
+      ) {
+        amountInBaseCurrency = this.#computeAmountInBaseCurrency(
+          input.amount ? input.amount : expense.amount,
+          exchangeRate,
+        );
+      }
+
+      updatedExpense = await Expense.findByIdAndUpdate(expenseId, {
+        ...input,
+        amountInBaseCurrency: amountInBaseCurrency,
+      });
+
+      await this.#checkBudgetAlert(userId, expense.categoryId.toString());
+
+      if (!updatedExpense) {
+        throw new AppError("Update expense failed");
+      }
+
+      return updatedExpense;
+    }
+
+    if (
+      expense.isRecurring === false &&
+      expense.recurrence?.parentId !== null &&
+      input.editScope === undefined
+    ) {
+      let amountInBaseCurrency;
+      if (
+        (input.amount !== expense.amount && input.amount) ||
+        (input.currency !== expense.currency && input.currency)
+      ) {
+        amountInBaseCurrency = this.#computeAmountInBaseCurrency(
+          input.amount ? input.amount : expense.amount,
+          exchangeRate,
+        );
+      }
+
+      updatedExpense = await Expense.findByIdAndUpdate(expenseId, {
+        ...input,
+        amountInBaseCurrency: amountInBaseCurrency,
+      });
+
+      await this.#checkBudgetAlert(userId, expense.categoryId.toString());
+
+      if (!updatedExpense) {
+        throw new AppError("Update expense failed");
+      }
+
+      return updatedExpense;
+    }
+
+    if (expense.isRecurring && input.editScope) {
+      if (input.editScope === "this") {
+        let amountInBaseCurrency;
+        if (
+          (input.amount !== expense.amount && input.amount) ||
+          (input.currency !== expense.currency && input.currency)
+        ) {
+          amountInBaseCurrency = this.#computeAmountInBaseCurrency(
+            input.amount ? input.amount : expense.amount,
+            exchangeRate,
+          );
+        }
+
+        updatedExpense = await Expense.findByIdAndUpdate(expenseId, {
+          ...input,
+          amountInBaseCurrency: amountInBaseCurrency,
+        });
+
+        if (!updatedExpense) {
+          throw new AppError("Update expense failed");
+        }
+        return updatedExpense;
+      }
+
+      if (input.editScope === "all") {
+        let amountInBaseCurrency;
+        if (
+          (input.amount !== expense.amount && input.amount) ||
+          (input.currency !== expense.currency && input.currency)
+        ) {
+          amountInBaseCurrency = this.#computeAmountInBaseCurrency(
+            input.amount ? input.amount : expense.amount,
+            exchangeRate,
+          );
+        }
+
+        updatedExpense = await Expense.findByIdAndUpdate(expenseId, {
+          ...input,
+          amountInBaseCurrency: amountInBaseCurrency,
+        });
+
+        await Expense.updateMany(
+          { "recurrence.parentId": expenseId },
+          { ...input, amountInBaseCurrency: amountInBaseCurrency },
+        );
+
+        if (!updatedExpense) {
+          throw new AppError("Update expense failed");
+        }
+
+        return updatedExpense;
+      }
+    }
+
+    throw new AppError("Update this expense not alowed");
+  }
+
+  async #checkBudgetAlert(userId: string, categoryId: string) {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+    const category = await Categories.findById(categoryId);
+    if (!category) {
+      throw new NotFoundError("Category");
+    }
+
+    const result = await Expense.aggregate([
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(userId),
+          categoryId: new mongoose.Types.ObjectId(categoryId),
+          date: { $gte: startOfMonth, $lt: startOfNextMonth },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalSpent: { $sum: "$amountInBaseCurrency" },
+        },
+      },
+    ]);
+
+    const totalSpent = result.length > 0 ? result[0].totalSpent : 0;
+    const budgetLimit = category.budgetLimit || 0;
+
+    if (budgetLimit > 0) {
+      const percentage = (totalSpent / budgetLimit) * 100;
+
+      if (percentage >= 80) {
+        const alertType = percentage >= 100 ? "exceeded" : "warning";
+
+        const budgetAlertExist = await BudgetAlert.exists({
+          userId: userId,
+          categoryId: categoryId,
+          alertType: alertType,
+          createdAt: { $gte: startOfMonth, $lt: startOfNextMonth },
+        });
+
+        if (!budgetAlertExist) {
+          await BudgetAlert.create({
+            userId: userId,
+            categoryId: categoryId,
+            month: startOfMonth.toISOString().slice(0, 7),
+            budgetLimit: budgetLimit,
+            spentAmount: totalSpent,
+            percentage: percentage,
+            alertType: alertType,
+          });
+        }
+      }
+    }
+  }
+
+  #computeAmountInBaseCurrency(exchangeRate: number, amount: number) {
+    return amount * exchangeRate;
   }
 }

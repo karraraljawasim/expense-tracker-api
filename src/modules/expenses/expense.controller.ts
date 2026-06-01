@@ -34,4 +34,14 @@ export class ExpenseController {
 
     ApiResponse.success(res, data);
   });
+
+  update = asyncHandler(async (req, res) => {
+    const data = await this.#expenseService.update(
+      req.params.expenseId as string,
+      req.body,
+      req.user!.id,
+    );
+
+    ApiResponse.success(res, data);
+  });
 }

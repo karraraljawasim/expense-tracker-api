@@ -7,6 +7,7 @@ import {
   createExpenseSchema,
   expenseIdPramseSchema,
   getAllExpensesQuerySchema,
+  updateExpenseSchema,
 } from "./expense.validation.js";
 
 const expenseController = new ExpenseController(new ExpenseService());
@@ -28,4 +29,5 @@ expenseRouter
     authenticate,
     validate(expenseIdPramseSchema, "params"),
     expenseController.getById,
-  );
+  )
+  .patch(authenticate, validate(updateExpenseSchema), expenseController.update);
