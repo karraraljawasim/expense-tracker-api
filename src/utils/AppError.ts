@@ -34,3 +34,9 @@ export class ForbiddenError extends AppError {
     super(message, 403);
   }
 }
+
+export class GoneError extends AppError {
+  constructor(resource = "Resource") {
+    super(`This ${resource} no longer exists`, 410);
+  }
+}

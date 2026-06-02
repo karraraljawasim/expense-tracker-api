@@ -43,6 +43,10 @@ const budgetAlertSchema = new Schema<IBudgetAlert>(
       type: Date,
       default: null,
     },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
     isRead: {
       type: Boolean,
       default: false,

@@ -11,7 +11,6 @@ const categorySchema = new Schema<Category>(
     name: {
       type: String,
       required: true,
-      unique: true,
     },
     color: {
       type: String,
@@ -28,6 +27,10 @@ const categorySchema = new Schema<Category>(
       required: true,
       uppercase: true,
       trim: true,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true },

@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import {
   AppError,
+  GoneError,
   NotFoundError,
   UnauthorizedError,
 } from "../../utils/AppError.js";
@@ -123,6 +124,7 @@ export class ExpenseService implements IExpenseService {
 
     const filterObject: IGetAllExpensesFilter = {
       userId: userId,
+      isDeleted: false,
     };
 
     if (query.categoryId) {
@@ -170,10 +172,15 @@ export class ExpenseService implements IExpenseService {
       throw new NotFoundError("Expense");
     }
 
+    if (expense.isDeleted) {
+      throw new GoneError("Expense");
+    }
+
     if (expense.isRecurring && expense.recurrence?.parentId === null) {
       const subExpenses = await Expense.find({
         userId: new mongoose.Types.ObjectId(userId),
         "recurrence.parentId": expense._id,
+        isDeleted: false,
       })
         .select({
           _id: 1,
@@ -212,6 +219,10 @@ export class ExpenseService implements IExpenseService {
     let updatedExpense;
     if (!expense || expense?.userId.toString() !== userId) {
       throw new NotFoundError("Expense");
+    }
+
+    if (expense.isDeleted) {
+      throw new GoneError("Expense");
     }
 
     if (!input.editScope && expense.isRecurring) {
@@ -302,6 +313,34 @@ export class ExpenseService implements IExpenseService {
         return updatedExpense;
       }
 
+      if (input.editScope === "thisAndFuture") {
+        let amountInBaseCurrency;
+        if (
+          (input.amount !== expense.amount && input.amount) ||
+          (input.currency !== expense.currency && input.currency)
+        ) {
+          amountInBaseCurrency = this.#computeAmountInBaseCurrency(
+            input.amount ? input.amount : expense.amount,
+            exchangeRate,
+          );
+        }
+
+        updatedExpense = await Expense.findByIdAndUpdate(expenseId, {
+          ...input,
+          amountInBaseCurrency,
+          "recurrence.nextRunAt": new Date(),
+        });
+
+        await Expense.updateMany(
+          {
+            "recurrence.parentId": expenseId,
+            date: { $gte: new Date() },
+          },
+          {
+            isDeleted: true,
+          },
+        );
+      }
       if (input.editScope === "all") {
         let amountInBaseCurrency;
         if (
@@ -319,10 +358,29 @@ export class ExpenseService implements IExpenseService {
           amountInBaseCurrency: amountInBaseCurrency,
         });
 
+        const allCopies = await Expense.find({
+          "recurrence.parentId": expenseId,
+          isDeleted: false,
+        });
+
         await Expense.updateMany(
           { "recurrence.parentId": expenseId },
           { ...input, amountInBaseCurrency: amountInBaseCurrency },
         );
+
+        const uniqueMonths = [
+          ...new Set(
+            allCopies.map((copy) => copy.date.toISOString().slice(0, 7)),
+          ),
+        ];
+
+        for (const month of uniqueMonths) {
+          await this.#checkBudgetAlert(
+            userId,
+            expense.categoryId.toString(),
+            new Date(month),
+          );
+        }
 
         if (!updatedExpense) {
           throw new AppError("Update expense failed");
@@ -345,6 +403,9 @@ export class ExpenseService implements IExpenseService {
       throw new NotFoundError("Expense");
     }
 
+    if (expense.isDeleted) {
+      throw new GoneError("Expense");
+    }
     if (
       expense.isRecurring === false &&
       expense.recurrence?.parentId === null
@@ -373,7 +434,7 @@ export class ExpenseService implements IExpenseService {
     if (expense.isRecurring && expense.recurrence?.parentId === null) {
       if (!deleteScope) {
         throw new AppError(
-          "Delete scope is required in  deleted recrring expense",
+          "Delete scope is required in  deleted recurrening expense",
         );
       }
 

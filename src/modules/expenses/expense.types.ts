@@ -34,6 +34,7 @@ export type IGetAllExpensesFilter = {
   isRecurring?: boolean;
   userId: string;
   "recurrence.parentId"?: null;
+  isDeleted: false;
 };
 
 export type SubExpense = {

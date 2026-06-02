@@ -11,5 +11,6 @@ export type IBudgetAlert = {
   triggered: boolean;
   triggeredAt: Date | null;
   isRead: boolean;
+  isDeleted: boolean;
   createdAt: Date;
 };

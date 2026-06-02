@@ -7,6 +7,7 @@ export type Category = {
   color?: string;
   currency: string;
   budgetLimit?: number;
+  isDeleted: boolean;
   createAt?: Date;
   updateAt?: Date;
 };

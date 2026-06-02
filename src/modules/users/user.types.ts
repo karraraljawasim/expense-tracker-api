@@ -4,6 +4,7 @@ export type IUser = {
   passwordHash: string;
   currency: string;
   role: "user" | "admin";
+  isDeleted: boolean;
   createAt?: Date;
   updateAt?: Date;
 };

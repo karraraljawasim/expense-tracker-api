@@ -31,6 +31,10 @@ const userShema = new Schema<IUser>(
       enum: ["admin", "user"],
       default: "user",
     },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true },
 );

@@ -3,6 +3,7 @@ import {
   ConflictError,
   NotFoundError,
   UnauthorizedError,
+  GoneError,
 } from "../../utils/AppError.js";
 import Users from "../users/user.model.js";
 import Categories from "./category.model.js";
@@ -30,8 +31,11 @@ export interface ICategoryService {
 
 export class CategoryService implements ICategoryService {
   async create(input: CreateCategoryRequestDto & { userId: string }) {
-    const categoryExist = await Categories.findOne({ name: input.name });
-    if (categoryExist) {
+    const category = await Categories.findOne({
+      name: input.name,
+      userId: input.userId,
+    });
+    if (category) {
       throw new ConflictError("Category with same name");
     }
 
@@ -49,7 +53,10 @@ export class CategoryService implements ICategoryService {
   }
 
   async getAll(userId: string) {
-    const categories = await Categories.find({ userId: userId });
+    const categories = await Categories.find({
+      userId: userId,
+      isDeleted: false,
+    });
 
     return categories;
   }
@@ -58,6 +65,9 @@ export class CategoryService implements ICategoryService {
     const category = await Categories.findById(categoryId);
     if (!category) {
       throw new NotFoundError("Category");
+    }
+    if (category.isDeleted) {
+      throw new GoneError("category");
     }
 
     if (!category.userId.equals(userId)) {
@@ -72,13 +82,17 @@ export class CategoryService implements ICategoryService {
     categoryId: string,
     userId: string,
   ) {
-    const categoryExist = await Categories.findById({ _id: categoryId });
-    if (!categoryExist) {
+    const category = await Categories.findById(categoryId);
+    if (!category) {
       throw new NotFoundError("Category");
     }
 
-    if (!categoryExist.userId.equals(userId)) {
+    if (!category.userId.equals(userId)) {
       throw new UnauthorizedError("You not owner to this category");
+    }
+
+    if (category.isDeleted) {
+      throw new GoneError("category");
     }
 
     const updatedCateogry = await Categories.updateOne(
@@ -93,16 +107,19 @@ export class CategoryService implements ICategoryService {
   }
 
   async deleteById(categoryId: string, userId: string) {
-    const categoryExist = await Categories.findById(categoryId);
-    if (!categoryExist) {
+    const category = await Categories.findById(categoryId);
+    if (!category) {
       throw new NotFoundError("Category");
     }
+    if (category.isDeleted) {
+      throw new GoneError("category");
+    }
 
-    if (!categoryExist.userId.equals(userId)) {
+    if (!category.userId.equals(userId)) {
       throw new UnauthorizedError("You not owner to this cateogry");
     }
 
-    const deletedCategory = await Categories.deleteOne({ _id: categoryId });
+    const deletedCategory = await Categories.findByIdAndUpdate(categoryId);
     if (!deletedCategory) {
       throw new AppError("Delete category failed");
     }
