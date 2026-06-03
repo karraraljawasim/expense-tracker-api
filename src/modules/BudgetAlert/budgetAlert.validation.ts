@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import { z } from "zod";
 
 export const getAllTriggeredAlertsQueryschema = z.object({
@@ -17,6 +18,12 @@ export const getAllTriggeredAlertsQueryschema = z.object({
       );
       return startOfCurrentMonth.toISOString().slice(0, 7);
     }),
+});
+
+export const budgetAlertIdPramseSchema = z.object({
+  budgetAlertId: z.string().refine((value) => Types.ObjectId.isValid(value), {
+    message: "Invalid object id format",
+  }),
 });
 
 export type GetAllTriggeredAlertsQueryDto = z.infer<

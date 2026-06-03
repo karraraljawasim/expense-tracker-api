@@ -4,6 +4,7 @@ import Categories from "../categories/category.model.js";
 import { Expense } from "../expenses/expense.modle.js";
 import { IBudgetAlert, MonthlyBudgetResponse } from "./budgetAlert.types.js";
 import { GetAllTriggeredAlertsQueryDto } from "./budgetAlert.validation.js";
+import { AppError, NotFoundError } from "../../utils/AppError.js";
 
 export interface IBudgetAlertService {
   getMonthlyBudgetStatus: (userId: string) => Promise<MonthlyBudgetResponse>;
@@ -11,6 +12,10 @@ export interface IBudgetAlertService {
     userId: string,
     query: GetAllTriggeredAlertsQueryDto,
   ) => Promise<IBudgetAlert[]>;
+  markBudgetAlertAsRead: (
+    userId: string,
+    budgetAlertId: string,
+  ) => Promise<IBudgetAlert>;
 }
 export class BudgetAlertService implements IBudgetAlertService {
   async getMonthlyBudgetStatus(userId: string) {
@@ -149,5 +154,29 @@ export class BudgetAlertService implements IBudgetAlertService {
       .populate("categoryId");
 
     return triggeredAlerts;
+  }
+
+  async markBudgetAlertAsRead(userId: string, bugetAlertId: string) {
+    const bugetAlert = await BudgetAlert.findById(bugetAlertId);
+    if (!bugetAlert || bugetAlert.userId.toString() !== userId) {
+      throw new NotFoundError("BugetAlert");
+    }
+
+    if (bugetAlert.isRead) {
+      return bugetAlert;
+    }
+
+    const updatedBugetAlert = await BudgetAlert.findByIdAndUpdate(
+      bugetAlertId,
+      {
+        isRead: true,
+      },
+    );
+
+    if (!updatedBugetAlert) {
+      throw new AppError("Mark budget read falied");
+    }
+
+    return updatedBugetAlert;
   }
 }
