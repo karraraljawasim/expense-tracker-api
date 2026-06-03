@@ -16,6 +16,9 @@ export interface IBudgetAlertService {
     userId: string,
     budgetAlertId: string,
   ) => Promise<IBudgetAlert>;
+  markAllBudgetAlertAsRead: (
+    userId: string,
+  ) => Promise<{ countUpdated: number }>;
 }
 export class BudgetAlertService implements IBudgetAlertService {
   async getMonthlyBudgetStatus(userId: string) {
@@ -178,5 +181,21 @@ export class BudgetAlertService implements IBudgetAlertService {
     }
 
     return updatedBugetAlert;
+  }
+
+  async markAllBudgetAlertAsRead(userId: string) {
+    const updateAlerts = await BudgetAlert.updateMany(
+      {
+        isRead: false,
+        userId: userId,
+      },
+      {
+        isRead: true,
+      },
+    );
+
+    return {
+      countUpdated: updateAlerts.modifiedCount,
+    };
   }
 }

@@ -39,4 +39,12 @@ export class BudgetAlertController {
 
     ApiResponse.success(res, data);
   });
+
+  markAllBudgetAlertAsRead = asyncHandler(async (req, res) => {
+    const data = await this.#budgetAlertService.markAllBudgetAlertAsRead(
+      req.user!.id,
+    );
+
+    ApiResponse.success(res, data);
+  });
 }

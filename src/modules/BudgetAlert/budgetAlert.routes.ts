@@ -33,3 +33,7 @@ budgetAlertRouter
     validate(budgetAlertIdPramseSchema, "params"),
     budgetAlertController.markBudgetAlertAsRead,
   );
+
+budgetAlertRouter
+  .route("/alerts/read-all")
+  .patch(authenticate, budgetAlertController.markAllBudgetAlertAsRead);
