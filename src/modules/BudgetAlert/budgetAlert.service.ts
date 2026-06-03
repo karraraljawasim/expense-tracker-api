@@ -2,10 +2,15 @@ import { Types } from "mongoose";
 import { BudgetAlert } from "./budgetAlert.modle.js";
 import Categories from "../categories/category.model.js";
 import { Expense } from "../expenses/expense.modle.js";
-import { MonthlyBudgetResponse } from "./budgetAlert.types.js";
+import { IBudgetAlert, MonthlyBudgetResponse } from "./budgetAlert.types.js";
+import { GetAllTriggeredAlertsQueryDto } from "./budgetAlert.validation.js";
 
 export interface IBudgetAlertService {
   getMonthlyBudgetStatus: (userId: string) => Promise<MonthlyBudgetResponse>;
+  getAllTriggeredAlerts: (
+    userId: string,
+    query: GetAllTriggeredAlertsQueryDto,
+  ) => Promise<IBudgetAlert[]>;
 }
 export class BudgetAlertService implements IBudgetAlertService {
   async getMonthlyBudgetStatus(userId: string) {
@@ -129,5 +134,20 @@ export class BudgetAlertService implements IBudgetAlertService {
         categoriesSafe,
       },
     };
+  }
+  async getAllTriggeredAlerts(
+    userId: string,
+    query: GetAllTriggeredAlertsQueryDto,
+  ) {
+    const triggeredAlerts = await BudgetAlert.find({
+      userId,
+      isRead: query.isRead,
+      month: query.month,
+      triggered: true,
+    })
+      .sort({ triggeredAt: -1 })
+      .populate("categoryId");
+
+    return triggeredAlerts;
   }
 }
