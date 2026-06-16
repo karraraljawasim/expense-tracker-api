@@ -7,3 +7,5 @@ export type PaginationResponseDto<T> = {
     totalPages: number;
   };
 };
+
+export type paginationQuery = { page: string; pageSize: string };
