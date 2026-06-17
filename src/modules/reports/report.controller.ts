@@ -22,4 +22,13 @@ export class ReportController {
 
     ApiResponse.success(res, data);
   });
+
+  getExpenseReportByCategory = asyncHandler(async (req, res) => {
+    const data = await this.#ReportService.getExpenseReportByCategory(
+      req.params.categoryId as string,
+      req.user!.id,
+    );
+
+    ApiResponse.success(res, data);
+  });
 }

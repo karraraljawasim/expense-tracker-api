@@ -1,4 +1,5 @@
 import { Types } from "mongoose";
+import { IExpense } from "../expenses/expense.types.js";
 
 export type GetMonthlyReportResponseDto = {
   totalExpensesOveral: number;
@@ -9,4 +10,9 @@ export type GetMonthlyReportResponseDto = {
     avargSpend: number;
     expenseCount: number;
   }[];
+};
+
+export type GetExpenseReportByCategoryResponseDto = {
+  totalSpendOverall: number;
+  top3ExpensiveExpenses: IExpense[];
 };
