@@ -1,0 +1,25 @@
+import { z } from "zod";
+import { asyncHandler } from "../../utils/asyncHandler.js";
+import { IReportService } from "./report.service.js";
+import { getMonthlyReportQuerySchmea } from "./report.validation.js";
+import { ApiResponse } from "../../utils/apiResponse.js";
+
+export class ReportController {
+  readonly #ReportService: IReportService;
+
+  constructor(reportService: IReportService) {
+    this.#ReportService = reportService;
+  }
+
+  getMonthlyReport = asyncHandler(async (req, res) => {
+    const query = req.validateQuery as z.infer<
+      typeof getMonthlyReportQuerySchmea
+    >;
+    const data = await this.#ReportService.getMonthlyReport(
+      query,
+      req.user!.id,
+    );
+
+    ApiResponse.success(res, data);
+  });
+}
