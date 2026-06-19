@@ -2,17 +2,15 @@ import { beforeAll, beforeEach, afterAll, vi } from "vitest";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import mongoose from "mongoose";
 
-let mongo: any;
+let mongo: MongoMemoryServer;
 
 beforeAll(async () => {
   console.log = vi.fn();
   console.info = vi.fn();
-  console.error = vi.fn();
   console.warn = vi.fn();
 
   mongo = await MongoMemoryServer.create();
-  const uri = mongo.getUri();
-  await mongoose.connect(uri);
+  await mongoose.connect(mongo.getUri());
 });
 
 afterAll(async () => {
@@ -24,10 +22,7 @@ afterAll(async () => {
 });
 
 beforeEach(async () => {
-  const collections = await mongoose.connection?.db?.collections();
-  if (!collections) return;
-
-  for (const collection of collections) {
-    await collection.deleteMany({});
-  }
+  await Promise.all(
+    Object.values(mongoose.connection.collections).map((c) => c.deleteMany({})),
+  );
 });
