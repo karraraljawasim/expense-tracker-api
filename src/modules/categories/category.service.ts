@@ -18,7 +18,7 @@ import {
 export interface ICategoryService {
   create: (
     input: CreateCategoryRequestDto & { userId: string },
-  ) => Promise<void>;
+  ) => Promise<Category>;
 
   getAll: (
     userId: string,
@@ -55,6 +55,8 @@ export class CategoryService implements ICategoryService {
     if (!newCategory) {
       throw new AppError("Create new category failed");
     }
+
+    return newCategory;
   }
 
   async getAll(userId: string, query: { pageSize: string; page: string }) {

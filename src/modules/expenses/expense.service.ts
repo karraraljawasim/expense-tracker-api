@@ -5,7 +5,10 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "../../utils/AppError.js";
-import { checkBudgetAlert } from "../../helpers/expense.helper.js";
+import {
+  checkBudgetAlert,
+  computeAmountInBaseCurrency,
+} from "../../helpers/expense.helper.js";
 import Categories from "../categories/category.model.js";
 import { Expense } from "./expense.modle.js";
 import {
@@ -53,7 +56,7 @@ export class ExpenseService implements IExpenseService {
       throw new UnauthorizedError("You not the owner to this category");
     }
 
-    const amountInBaseCurrency = this.#computeAmountInBaseCurrency(
+    const amountInBaseCurrency = computeAmountInBaseCurrency(
       exchangeRate,
       input.amount,
     );
@@ -268,7 +271,7 @@ export class ExpenseService implements IExpenseService {
         (input.amount !== expense.amount && input.amount) ||
         (expense.currency !== input.currency && input.currency)
       ) {
-        amountInBaseCurrency = this.#computeAmountInBaseCurrency(
+        amountInBaseCurrency = computeAmountInBaseCurrency(
           input.amount ? input.amount : expense.amount,
           exchangeRate,
         );
@@ -298,7 +301,7 @@ export class ExpenseService implements IExpenseService {
         (input.amount !== expense.amount && input.amount) ||
         (input.currency !== expense.currency && input.currency)
       ) {
-        amountInBaseCurrency = this.#computeAmountInBaseCurrency(
+        amountInBaseCurrency = computeAmountInBaseCurrency(
           input.amount ? input.amount : expense.amount,
           exchangeRate,
         );
@@ -325,7 +328,7 @@ export class ExpenseService implements IExpenseService {
           (input.amount !== expense.amount && input.amount) ||
           (input.currency !== expense.currency && input.currency)
         ) {
-          amountInBaseCurrency = this.#computeAmountInBaseCurrency(
+          amountInBaseCurrency = computeAmountInBaseCurrency(
             input.amount ? input.amount : expense.amount,
             exchangeRate,
           );
@@ -348,7 +351,7 @@ export class ExpenseService implements IExpenseService {
           (input.amount !== expense.amount && input.amount) ||
           (input.currency !== expense.currency && input.currency)
         ) {
-          amountInBaseCurrency = this.#computeAmountInBaseCurrency(
+          amountInBaseCurrency = computeAmountInBaseCurrency(
             input.amount ? input.amount : expense.amount,
             exchangeRate,
           );
@@ -376,7 +379,7 @@ export class ExpenseService implements IExpenseService {
           (input.amount !== expense.amount && input.amount) ||
           (input.currency !== expense.currency && input.currency)
         ) {
-          amountInBaseCurrency = this.#computeAmountInBaseCurrency(
+          amountInBaseCurrency = computeAmountInBaseCurrency(
             input.amount ? input.amount : expense.amount,
             exchangeRate,
           );
@@ -530,9 +533,5 @@ export class ExpenseService implements IExpenseService {
         return;
       }
     }
-  }
-
-  #computeAmountInBaseCurrency(exchangeRate: number, amount: number) {
-    return amount * exchangeRate;
   }
 }

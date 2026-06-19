@@ -95,3 +95,10 @@ export async function checkBudgetAlert(
     }
   }
 }
+
+export function computeAmountInBaseCurrency(
+  exchangeRate: number,
+  amount: number,
+) {
+  return amount * exchangeRate;
+}
