@@ -3,7 +3,7 @@ import {
   PaginationResponseDto,
 } from "../../types/pagination.js";
 import { ForbiddenError, NotFoundError } from "../../utils/AppError.js";
-import Users from "./user.model.js";
+import { Users } from "./user.model.js";
 import { IUser, UserRole } from "./user.types.js";
 import { UpdateUserRequestDto } from "./user.validation.js";
 

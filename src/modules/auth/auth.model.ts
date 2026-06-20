@@ -25,6 +25,7 @@ const refreshTokenSchema = new Schema<IRefreshToken>(
 // Indexes
 refreshTokenSchema.index({ userId: 1 });
 
-const RefreshToken = model<IRefreshToken>("RefreshToken", refreshTokenSchema);
-
-export default RefreshToken;
+export const RefreshToken = model<IRefreshToken>(
+  "RefreshToken",
+  refreshTokenSchema,
+);
