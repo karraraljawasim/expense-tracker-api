@@ -5,9 +5,7 @@ import { app } from "../helpers/testApp";
 import {
   createAuthenticedUser,
   createTestCategory,
-  getAuthTokens,
 } from "../helpers/fixtures.ts";
-import { email } from "zod";
 
 let userId: Types.ObjectId;
 let token: string;

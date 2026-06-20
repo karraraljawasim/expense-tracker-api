@@ -82,14 +82,14 @@ export class ReportService implements IReportService {
     return {
       totalExpensesOverall,
       totalCategories,
-      spendingByCategory: expenseReport[0].data.map((row: any) => {
-        return {
-          categoryId: row?._id,
-          totalSpend: row?.totalSpendByCategory,
-          avargSpend: row?.avargSpendByCategory,
-          expenseCount: row?.expenseCountInCategory,
-        };
-      }),
+      spendingByCategory: expenseReport[0]?.data
+        ? expenseReport[0].data.map((row: any) => ({
+            categoryId: row?._id,
+            totalSpend: row?.totalSpendByCategory,
+            avargSpend: row?.avargSpendByCategory,
+            expenseCount: row?.expenseCountInCategory,
+          }))
+        : [],
       metaData: {
         totalCount: totalCategories,
         page,
@@ -172,11 +172,6 @@ export class ReportService implements IReportService {
         },
       },
       {
-        $sort: {
-          totalSpendByCategory: -1,
-        },
-      },
-      {
         $facet: {
           totalSpendData: [
             {
@@ -195,7 +190,7 @@ export class ReportService implements IReportService {
             },
             {
               $sort: {
-                totalSpendSoFar: -1,
+                totalSpend: -1,
               },
             },
             {

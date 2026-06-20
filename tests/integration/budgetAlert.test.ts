@@ -8,7 +8,6 @@ import {
   createTestCategory,
   createTestExpense,
 } from "../helpers/fixtures.ts";
-import { Expense } from "../../src/modules/expenses/expense.modle.ts";
 
 let userId: Types.ObjectId;
 let token: string;

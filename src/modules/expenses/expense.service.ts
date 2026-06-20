@@ -248,7 +248,7 @@ export class ExpenseService implements IExpenseService {
     userId: string,
   ) {
     const expense = await Expense.findById(expenseId);
-    let updatedExpense;
+
     if (!expense || expense?.userId.toString() !== userId) {
       throw new NotFoundError("Expense");
     }
@@ -277,13 +277,14 @@ export class ExpenseService implements IExpenseService {
         );
       }
 
-      updatedExpense = await Expense.findByIdAndUpdate(expenseId, {
+      await Expense.findByIdAndUpdate(expenseId, {
         ...input,
         amountInBaseCurrency: amountInBaseCurrency,
       });
 
       await checkBudgetAlert(userId, expense.categoryId.toString());
 
+      const updatedExpense = await Expense.findById(expenseId);
       if (!updatedExpense) {
         throw new AppError("Update expense failed");
       }
@@ -307,13 +308,14 @@ export class ExpenseService implements IExpenseService {
         );
       }
 
-      updatedExpense = await Expense.findByIdAndUpdate(expenseId, {
+      await Expense.findByIdAndUpdate(expenseId, {
         ...input,
         amountInBaseCurrency: amountInBaseCurrency,
       });
 
       await checkBudgetAlert(userId, expense.categoryId.toString());
 
+      const updatedExpense = await Expense.findById(expenseId);
       if (!updatedExpense) {
         throw new AppError("Update expense failed");
       }
@@ -334,11 +336,12 @@ export class ExpenseService implements IExpenseService {
           );
         }
 
-        updatedExpense = await Expense.findByIdAndUpdate(expenseId, {
+        await Expense.findByIdAndUpdate(expenseId, {
           ...input,
           amountInBaseCurrency: amountInBaseCurrency,
         });
 
+        const updatedExpense = await Expense.findById(expenseId);
         if (!updatedExpense) {
           throw new AppError("Update expense failed");
         }
@@ -357,7 +360,7 @@ export class ExpenseService implements IExpenseService {
           );
         }
 
-        updatedExpense = await Expense.findByIdAndUpdate(expenseId, {
+        await Expense.findByIdAndUpdate(expenseId, {
           ...input,
           amountInBaseCurrency,
           "recurrence.nextRunAt": new Date(),
@@ -385,7 +388,7 @@ export class ExpenseService implements IExpenseService {
           );
         }
 
-        updatedExpense = await Expense.findByIdAndUpdate(expenseId, {
+        await Expense.findByIdAndUpdate(expenseId, {
           ...input,
           amountInBaseCurrency: amountInBaseCurrency,
         });
@@ -414,6 +417,7 @@ export class ExpenseService implements IExpenseService {
           );
         }
 
+        const updatedExpense = await Expense.findById(expenseId);
         if (!updatedExpense) {
           throw new AppError("Update expense failed");
         }
@@ -435,6 +439,9 @@ export class ExpenseService implements IExpenseService {
       throw new NotFoundError("Expense");
     }
 
+    if (expense.userId.toString() !== userId) {
+      throw new UnauthorizedError("You not owner to this expense");
+    }
     if (expense.isDeleted) {
       throw new GoneError("Expense");
     }
