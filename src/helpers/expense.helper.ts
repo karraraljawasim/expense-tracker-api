@@ -11,7 +11,7 @@ export async function checkBudgetAlert(
 ) {
   const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
   const startOfNextMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
-  const month = startOfMonth.toISOString().slice(0, 7);
+  const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 
   const category = await Categories.findById(categoryId);
   if (!category) {
@@ -47,7 +47,7 @@ export async function checkBudgetAlert(
     return;
   }
 
-  if (percentage >= 80 && percentage < 100) {
+  if (percentage >= 80) {
     await BudgetAlert.deleteMany({
       userId,
       categoryId,

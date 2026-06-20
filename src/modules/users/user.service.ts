@@ -78,9 +78,15 @@ export class UserService implements IUserService {
       throw new ForbiddenError();
     }
 
-    const updatedUser = await Users.findByIdAndUpdate(userId, {
-      isDeleted: true,
-    });
+    await Users.updateOne(
+      { _id: userId, isDeleted: false },
+      {
+        isDeleted: true,
+      },
+    );
+
+    const updatedUser = await Users.findById(userId);
+
     if (!updatedUser) {
       throw new NotFoundError("User");
     }
@@ -97,9 +103,11 @@ export class UserService implements IUserService {
       throw new ForbiddenError();
     }
 
-    const updatedUser = await Users.findByIdAndUpdate(userId, {
+    await Users.findByIdAndUpdate(userId, {
       ...input,
     }).exec();
+
+    const updatedUser = await Users.findById(userId);
 
     if (!updatedUser) {
       throw new NotFoundError("User");

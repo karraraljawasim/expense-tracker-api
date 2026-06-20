@@ -154,44 +154,49 @@ export class BudgetAlertService implements IBudgetAlertService {
     userId: string,
     query: GetAllTriggeredAlertsQueryDto,
   ) {
-    const page = parseInt(query.page) || 0;
+    const page = parseInt(query.page) || 1;
     const pageSize = parseInt(query.pageSize) || 10;
 
+    const matchStage: Record<string, unknown> = {
+      userId: new Types.ObjectId(userId),
+      triggered: true,
+    };
+
+    if (query.isRead !== undefined) matchStage.isRead = query.isRead;
+    if (query.month) matchStage.month = query.month;
+
     const triggeredAlerts = await BudgetAlert.aggregate([
-      {
-        $match: {
-          userId,
-          isRead: query.isRead,
-          month: query.month,
-          triggered: true,
-        },
-      },
-      {
-        $sort: {
-          triggeredAt: -1,
-        },
-      },
+      { $match: matchStage },
+      { $sort: { triggeredAt: -1 } },
       {
         $facet: {
           metaData: [{ $count: "totalCount" }],
-          data: [{ $skip: (page - 1) * pageSize }],
+          data: [
+            { $skip: (page - 1) * pageSize },
+            { $limit: pageSize },
+            {
+              $lookup: {
+                from: "categories",
+                localField: "categoryId",
+                foreignField: "_id",
+                as: "category",
+              },
+            },
+            {
+              $unwind: {
+                path: "$category",
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+          ],
         },
       },
-      {
-        $lookup: {
-          from: "Categories",
-          localField: "categoryId",
-          foreignField: "_id",
-          as: "category",
-        },
-      },
-      { $unwind: "$category" },
     ]);
 
     const totalCount = triggeredAlerts[0]?.metaData[0]?.totalCount || 0;
 
     return {
-      data: triggeredAlerts[0].data,
+      data: triggeredAlerts[0]?.data || [],
       metaData: {
         totalCount,
         page,
@@ -211,12 +216,11 @@ export class BudgetAlertService implements IBudgetAlertService {
       return bugetAlert;
     }
 
-    const updatedBugetAlert = await BudgetAlert.findByIdAndUpdate(
-      bugetAlertId,
-      {
-        isRead: true,
-      },
-    );
+    await BudgetAlert.findByIdAndUpdate(bugetAlertId, {
+      isRead: true,
+    });
+
+    const updatedBugetAlert = await BudgetAlert.findById(bugetAlertId);
 
     if (!updatedBugetAlert) {
       throw new AppError("Mark budget read falied");
