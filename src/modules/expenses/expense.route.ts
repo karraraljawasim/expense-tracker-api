@@ -5,7 +5,7 @@ import { authenticate } from "../../middlewares/auth.middlewares.js";
 import { validate } from "../../middlewares/validation.middleware.js";
 import {
   createExpenseSchema,
-  expenseIdPramseSchema,
+  expenseIdPramsSchema,
   expenseSoftDeleteQuerySchema,
   getAllExpensesQuerySchema,
   updateExpenseSchema,
@@ -28,13 +28,13 @@ expenseRouter
   .route("/:expenseId")
   .get(
     authenticate,
-    validate(expenseIdPramseSchema, "params"),
+    validate(expenseIdPramsSchema, "params"),
     expenseController.getById,
   )
   .patch(authenticate, validate(updateExpenseSchema), expenseController.update)
   .delete(
     authenticate,
-    validate(expenseIdPramseSchema, "params"),
+    validate(expenseIdPramsSchema, "params"),
     validate(expenseSoftDeleteQuerySchema, "query"),
     expenseController.softDelete,
   );

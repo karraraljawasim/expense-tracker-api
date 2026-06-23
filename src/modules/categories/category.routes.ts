@@ -6,7 +6,7 @@ import { validate } from "../../middlewares/validation.middleware.js";
 import {
   categoryIdParamsSchema,
   createCategorySchema,
-  paginateQury,
+  paginateQuery,
   updateCategorySchema,
 } from "./category.validation.js";
 
@@ -19,7 +19,7 @@ categoryRouter
   .post(authenticate, validate(createCategorySchema), categoryController.create)
   .get(
     authenticate,
-    validate(paginateQury, "query"),
+    validate(paginateQuery, "query"),
     categoryController.getAll,
   );
 

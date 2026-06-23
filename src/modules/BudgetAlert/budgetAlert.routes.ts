@@ -4,8 +4,8 @@ import { BudgetAlertService } from "./budgetAlert.service.js";
 import { authenticate } from "../../middlewares/auth.middlewares.js";
 import { validate } from "../../middlewares/validation.middleware.js";
 import {
-  budgetAlertIdPramseSchema,
-  getAllTriggeredAlertsQueryschema,
+  budgetAlertIdPramsSchema,
+  getAllTriggeredAlertsQuerySchema,
   getHistoryBudgetAlertByMonthQuerySchema,
 } from "./budgetAlert.validation.js";
 
@@ -23,7 +23,7 @@ budgetAlertRouter
   .route("/alerts")
   .get(
     authenticate,
-    validate(getAllTriggeredAlertsQueryschema, "query"),
+    validate(getAllTriggeredAlertsQuerySchema, "query"),
     budgetAlertController.getAllTriggeredAlerts,
   );
 
@@ -31,7 +31,7 @@ budgetAlertRouter
   .route("/alerts/:budgetAlertId/read")
   .patch(
     authenticate,
-    validate(budgetAlertIdPramseSchema, "params"),
+    validate(budgetAlertIdPramsSchema, "params"),
     budgetAlertController.markBudgetAlertAsRead,
   );
 
